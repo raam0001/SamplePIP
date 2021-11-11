@@ -1,0 +1,26 @@
+pipeline{
+    agent any
+    stages{
+        stage("Git CLone"){
+            steps{
+                git branch: 'main', url: 'https://github.com/raam0001/SamplePIP.git'
+            }
+        }
+        stage("Maven Build"){
+            steps{
+                sh "mvn clean install"
+            }
+        }
+        stage("deploy Tomcat"){
+            steps{
+               sshagent(['tomcat1']) {
+                sh """
+          scp -o StrictHostKeyChecking=no target/mvn-hello-world.war ec2-user@18.220.120.40:/opt/tomcat/tomcat9/webapps/
+          ssh ec2-user@18.220.120.40 /opt/tomcat/tomcat9/bin/shutdown.sh
+          ssh ec2-user@18.220.120.40 /opt/tomcat/tomcat9/bin/startup.sh
+           """
+               }
+            }
+        }
+    }
+}
